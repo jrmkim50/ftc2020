@@ -10,7 +10,6 @@ public class Wheel {
     static final double WHEEL_DIAMETER_INCHES = 4.0;
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
 
-
     public Wheel(DcMotor wheelMotor) {
         this.wheelMotor = wheelMotor;
     }
