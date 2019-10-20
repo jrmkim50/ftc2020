@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name="Teleop", group="final")
 public class Teleop extends OpMode{
-    Robot robot = new Robot();
-    Controller controller1 = new Controller(gamepad1);
+    DriveTrain robot;
+    Controller controller1;
     Wheel rfm;
     Wheel lfm;
     Wheel rbm;
@@ -24,7 +24,9 @@ public class Teleop extends OpMode{
     @Override
     public void init() {
         telemetry.addLine("Pushbot on");
+        robot = new DriveTrain();
         robot.init(hardwareMap);
+        controller1 = new Controller(gamepad1);
         rfm = new Wheel(robot.rightFrontMotor);
         lfm = new Wheel(robot.leftFrontMotor);
         rbm = new Wheel(robot.rightBackMotor);

@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-public class Robot {
+public class DriveTrain {
     public DcMotor  rightFrontMotor = null;
     public DcMotor  leftFrontMotor = null;
     public DcMotor  rightBackMotor = null;
