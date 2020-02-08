@@ -6,20 +6,24 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name="Teleop", group="final")
 public class Teleop extends OpMode{
     DriveTrain robot;
     Controller controller1;
-    Wheel rfm;
-    Wheel lfm;
-    Wheel rbm;
-    Wheel lbm;
+    Lift liftMechanism;
+    GrabberClass grabber;
+    Intake intakeMechanism;
+    FoundationMechanism foundation;
 
     double rightFrontPower;
     double leftFrontPower;
     double rightBackPower;
     double leftBackPower;
+    double liftPower;
+    double intakePower;
+    double turnPower = 0;
 
     @Override
     public void init() {
@@ -27,10 +31,19 @@ public class Teleop extends OpMode{
         robot = new DriveTrain();
         robot.init(hardwareMap);
         controller1 = new Controller(gamepad1);
-        rfm = new Wheel(robot.rightFrontMotor);
-        lfm = new Wheel(robot.leftFrontMotor);
-        rbm = new Wheel(robot.rightBackMotor);
-        lbm = new Wheel(robot.leftBackMotor);
+
+        liftMechanism = new Lift();
+        liftMechanism.init(hardwareMap);
+
+        intakeMechanism = new Intake();
+        intakeMechanism.init(hardwareMap);
+
+        grabber = new GrabberClass();
+        grabber.init(hardwareMap);
+
+        foundation = new FoundationMechanism();
+        foundation.init(hardwareMap);
+
     }
 
     @Override
@@ -39,11 +52,37 @@ public class Teleop extends OpMode{
         leftFrontPower = controller1.getLeftFrontPower();
         rightBackPower = controller1.getRightBackPower();
         leftBackPower  = controller1.getLeftBackPower();
+        liftPower = gamepad2.left_stick_y;
+        intakePower = gamepad2.right_stick_y;
 
-        lfm.setPower(leftFrontPower);
-        rfm.setPower(rightFrontPower);
-        lbm.setPower(leftBackPower);
-        rbm.setPower(rightBackPower);
+        robot.setPower(leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
+
+        liftMechanism.setPower(liftPower);
+        intakeMechanism.setPower(intakePower);
+
+        if (gamepad2.right_bumper) {
+            grabber.clampBlock();
+        }
+
+        else if (gamepad2.left_bumper) {
+            grabber.releaseBlock();
+        }
+
+        if (gamepad2.x) {
+            grabber.activePosition();
+        }
+
+        else if (gamepad2.y) {
+            grabber.neutralPosition();
+        }
+
+        if (gamepad2.b) {
+            foundation.releaseFoundation();
+        }
+
+        else if (gamepad2.a) {
+            foundation.clampFoundation();
+        }
     }
 
     @Override
