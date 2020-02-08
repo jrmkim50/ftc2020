@@ -134,16 +134,16 @@ public class DriveTrain {
         setPower(topLeftSpeed, topRightSpeed, bottomLeftSpeed, bottomRightSpeed);
 
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        double relativeAngle = dir == MovementDirection.LEFT ? 90 : 270;
+        double relativeAngle = dir == MovementDirection.LEFT ? 90 : -90;
 
         while ((rightFrontMotor.isBusy() && leftFrontMotor.isBusy())) {
             double error = getError(relativeAngle, imu);
-            double steeringError = dir == MovementDirection.RIGHT ? getSteeringError(error, 0.01) : -1 * getSteeringError(error, 0.01);
+            double steeringError = getSteeringError(error, 0.01);
 
-            topLeftSpeed = topLeftSpeed-steeringError;
-            topRightSpeed = topRightSpeed+steeringError;
-            bottomLeftSpeed = bottomLeftSpeed-steeringError;
-            bottomRightSpeed = bottomRightSpeed+steeringError;
+            topLeftSpeed = topLeftSpeed+steeringError;
+            topRightSpeed = topRightSpeed-steeringError;
+            bottomLeftSpeed = bottomLeftSpeed+steeringError;
+            bottomRightSpeed = bottomRightSpeed-steeringError;
 
             double max = Math.max(Math.abs(topLeftSpeed), Math.abs(topRightSpeed));
 
@@ -158,11 +158,11 @@ public class DriveTrain {
         }
 
         if (dir == MovementDirection.RIGHT) {
-            rightFrontMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-            leftBackMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+            rightFrontMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+            leftBackMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         } else if (dir == MovementDirection.LEFT) {
-            leftFrontMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-            rightBackMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftFrontMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+            rightBackMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         }
 
         activateRunUsingEncoderMode();
