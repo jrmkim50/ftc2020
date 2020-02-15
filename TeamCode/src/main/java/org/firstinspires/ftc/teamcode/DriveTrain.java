@@ -14,9 +14,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 public class DriveTrain {
-    public DcMotor  rightFrontMotor, leftFrontMotor, rightBackMotor, leftBackMotor = null;
-    HardwareMap hwMap           =  null;
-    private ElapsedTime period  = new ElapsedTime();
+    private DcMotor  rightFrontMotor, leftFrontMotor, rightBackMotor, leftBackMotor = null;
+    private final double RADIUS = 2;
+    private final double TICKS_PER_REVOLUTION = 537.6;
+    private final double COUNTS_PER_INCH = TICKS_PER_REVOLUTION/(2 * Math.PI * RADIUS);
+    private final double TOLERANCE_FOR_ROTATING_ROBOT_POSITION = 1;
+    private HardwareMap hwMap           =  null;
+    private BNO055IMU imu;
+    private Orientation angles;
 
     public void init(HardwareMap ahwMap) {
         hwMap = ahwMap;
@@ -29,10 +34,7 @@ public class DriveTrain {
         leftFrontMotor.setDirection(DcMotor.Direction.REVERSE);
         leftBackMotor.setDirection(DcMotor.Direction.REVERSE);
 
-        rightFrontMotor.setPower(0);
-        leftFrontMotor.setPower(0);
-        rightBackMotor.setPower(0);
-        leftBackMotor.setPower(0);
+        setPower(0,0,0,0);
 
         rightFrontMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftFrontMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -43,16 +45,24 @@ public class DriveTrain {
         leftFrontMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBackMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBackMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+
+        imu = hwMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
     }
 
-    public void setPower(double leftFrontPower, double rightFrontPower, double leftBackPower, double rightBackPower) {
-        leftFrontMotor.setPower(leftFrontPower);
-        rightFrontMotor.setPower(rightFrontPower);
-        leftBackMotor.setPower(leftBackPower);
-        rightBackMotor.setPower(rightBackPower);
+    public void setPower(double rightFront, double leftFront, double rightBack, double leftBack) {
+        rightFrontMotor.setPower(rightFront);
+        leftFrontMotor.setPower(leftFront);
+        rightBackMotor.setPower(rightBack);
+        leftBackMotor.setPower(leftBack);
     }
 
-    public void setTargetPositions(double inches, double COUNTS_PER_INCH) {
+    private void setTargetPositions(double inches) {
         int newRightFrontTarget = rightFrontMotor.getCurrentPosition() + (int) (inches * COUNTS_PER_INCH);
         int newLeftFrontTarget = leftFrontMotor.getCurrentPosition() + (int) (inches * COUNTS_PER_INCH);
         int newRightBackTarget = rightBackMotor.getCurrentPosition() + (int) (inches * COUNTS_PER_INCH);
@@ -63,14 +73,14 @@ public class DriveTrain {
         leftBackMotor.setTargetPosition(newLeftFrontTarget);
     }
 
-    public void activateRunToPositionMode() {
+    private void activateRunToPositionMode() {
         rightFrontMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         leftFrontMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         rightBackMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         leftBackMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
-    public void activateRunUsingEncoderMode() {
+    private void activateRunUsingEncoderMode() {
         rightFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftFrontMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -78,26 +88,20 @@ public class DriveTrain {
     }
 
     public void shutDown() {
-        rightFrontMotor.setPower(0);
-        leftFrontMotor.setPower(0);
-        rightBackMotor.setPower(0);
-        leftBackMotor.setPower(0);
+        setPower(0,0,0,0);
     }
 
-    public void mecanumDriveStraightAlongZero(double speed, double inches, BNO055IMU imu, double COUNTS_PER_INCH) {
-        setTargetPositions(inches, COUNTS_PER_INCH);
+    public void mecanumDriveStraightAlongZero(double speed, double inches, double relativeAngle) {
+        setTargetPositions(inches);
         activateRunToPositionMode();
 
         double leftSpeed = speed; double rightSpeed = speed;
         setPower(speed, speed, speed, speed);
 
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        double relativeAngle = inches > 0 ? 0 : 180;
-
         while ((rightFrontMotor.isBusy() && leftFrontMotor.isBusy())) {
 
-            double error = getError(relativeAngle, imu);
-            double steeringError = inches >= 0 ? getSteeringError(error, 0.01) : -1 * getSteeringError(error, 0.01);
+            double error = getError(relativeAngle);
+            double steeringError = getSteeringError(error, 0.1);
 
             leftSpeed = speed-steeringError;
             rightSpeed = speed+steeringError;
@@ -109,41 +113,39 @@ public class DriveTrain {
                 rightSpeed /= (max);
             }
 
-            setPower(leftSpeed, rightSpeed, leftSpeed, rightSpeed);
+            setPower(rightSpeed, leftSpeed, rightSpeed, leftSpeed);
         }
 
         activateRunUsingEncoderMode();
         setPower(0,0,0,0);
     }
 
-    public void mecanumStrafe(double speed, double inches, BNO055IMU imu, MovementDirection dir, double COUNTS_PER_INCH) {
-        setTargetPositions(inches, COUNTS_PER_INCH);
+    public void mecanumStrafe(double speed, double inches, MovementDirection dir, double relativeAngle) {
+        setTargetPositions(inches);
 
         double topLeftSpeed = speed; double topRightSpeed = speed;
         double bottomLeftSpeed = speed; double bottomRightSpeed = speed;
 
+
         if (dir == MovementDirection.RIGHT) {
-            rightFrontMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-            leftBackMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+                bottomLeftSpeed *= -1;
+                topRightSpeed *= -1;
         } else if (dir == MovementDirection.LEFT) {
-            leftFrontMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-            rightBackMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+                bottomRightSpeed *= -1;
+                topLeftSpeed *= -1;
         }
 
         activateRunToPositionMode();
         setPower(topLeftSpeed, topRightSpeed, bottomLeftSpeed, bottomRightSpeed);
 
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        double relativeAngle = dir == MovementDirection.LEFT ? 90 : -90;
-
         while ((rightFrontMotor.isBusy() && leftFrontMotor.isBusy())) {
-            double error = getError(relativeAngle, imu);
-            double steeringError = getSteeringError(error, 0.01);
+            double error = getError(relativeAngle);
+            double steeringError = getSteeringError(error, 0.1);
 
-            topLeftSpeed = topLeftSpeed+steeringError;
-            topRightSpeed = topRightSpeed-steeringError;
-            bottomLeftSpeed = bottomLeftSpeed+steeringError;
-            bottomRightSpeed = bottomRightSpeed-steeringError;
+            topLeftSpeed = topLeftSpeed-steeringError;
+            topRightSpeed = topRightSpeed+steeringError;
+            bottomLeftSpeed = bottomLeftSpeed-steeringError;
+            bottomRightSpeed = bottomRightSpeed+steeringError;
 
             double max = Math.max(Math.abs(topLeftSpeed), Math.abs(topRightSpeed));
 
@@ -157,43 +159,28 @@ public class DriveTrain {
             setPower(topLeftSpeed, topRightSpeed, bottomRightSpeed, bottomLeftSpeed);
         }
 
-        if (dir == MovementDirection.RIGHT) {
-            rightFrontMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-            leftBackMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        } else if (dir == MovementDirection.LEFT) {
-            leftFrontMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-            rightBackMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        }
-
         activateRunUsingEncoderMode();
         setPower(0,0,0,0);
     }
 
-    public void turnRobot(double speed, double degrees, BNO055IMU imu) { //turns counterclockwise
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
+    public void turnRobot(double speed, double degrees) { //turns counterclockwise
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         double target = (degrees + angles.firstAngle);
-        double robotError = getError(target, imu);
+        double robotError = getError(target);
 
-        if (degrees < 0) {
-            speed *= -1;
+        while (Math.abs(robotError) < TOLERANCE_FOR_ROTATING_ROBOT_POSITION) {
+            robotError = getError(target);
+            double tempSpeed = speed;
+            tempSpeed *= getSteeringError(robotError, 0.1);
+            tempSpeed = Math.max(tempSpeed, 0.8);
+            setPower(tempSpeed, -tempSpeed, tempSpeed, -tempSpeed);
         }
+        setPower(0,0,0,0);
 
-        setPower(-speed, speed, -speed, speed);
-        target = (target + 360) % 360;
-
-        while (angles.firstAngle < target) {
-            robotError = getError(target, imu);
-            if (robotError < 10) {
-                setPower(-speed/2, speed/2, -speed/2, speed/2);
-            } else {
-                setPower(-speed, speed, -speed, speed);
-            }
-        }
     }
 
-    public double getError(double targetAngle, BNO055IMU imu) { // calculate error in -179 to +180 range
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+    public double getError(double targetAngle) { // calculate error in -179 to +180 range
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         double robotError = targetAngle - angles.firstAngle;
         while (robotError > 180)  {
             robotError -= 360;
