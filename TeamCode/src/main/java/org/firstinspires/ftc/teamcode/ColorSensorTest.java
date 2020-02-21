@@ -23,7 +23,14 @@ public class ColorSensorTest extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addData("red color sensor: ", colorSensorClassObject.colorSensor.red());
+        double sum = colorSensorClassObject.colorSensor.red() +
+                     colorSensorClassObject.colorSensor.green() +
+                     colorSensorClassObject.colorSensor.blue();
+        telemetry.addData("red color sensor: ", colorSensorClassObject.colorSensor.red()/(sum+1E-11));
+        telemetry.addData("red color sensor: ", colorSensorClassObject.colorSensor.blue()/(sum+1E-11));
+        telemetry.addData("red color sensor: ", colorSensorClassObject.colorSensor.green()/(sum+1E-11));
+        // https://aishack.in/tutorials/normalized-rgb/
+        telemetry.update();
 
     }
 

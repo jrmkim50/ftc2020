@@ -13,12 +13,10 @@ public class Intake {
     public void init(HardwareMap ahwMap) {
         hwMap = ahwMap;
         this.intakeMotorOne  = hwMap.get(DcMotor.class, "intakeOne");
-        this.intakeMotorOne = intakeMotorOne;
         this.intakeMotorOne.setPower(0);
         this.intakeMotorOne.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         this.intakeMotorTwo  = hwMap.get(DcMotor.class, "intakeTwo");
-        this.intakeMotorTwo = intakeMotorTwo;
         this.intakeMotorTwo.setDirection(DcMotor.Direction.REVERSE);
         this.intakeMotorTwo.setPower(0);
         this.intakeMotorTwo.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);

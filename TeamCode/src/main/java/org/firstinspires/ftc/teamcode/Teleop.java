@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Paint;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -15,7 +17,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 @TeleOp(name="Teleop", group="final")
-public class Teleop extends OpMode{
+public class Teleop extends OpMode {
     DriveTrain robot;
     Controller controller1;
     Lift liftMechanism;
@@ -60,7 +62,7 @@ public class Teleop extends OpMode{
         liftPower = gamepad2.left_stick_y;
         intakePower = gamepad2.right_stick_y;
 
-        robot.setPower(leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
+        robot.setPower(rightFrontPower, leftFrontPower, rightBackPower, leftBackPower);
 
         liftMechanism.setPower(liftPower);
         intakeMechanism.setPower(intakePower);
