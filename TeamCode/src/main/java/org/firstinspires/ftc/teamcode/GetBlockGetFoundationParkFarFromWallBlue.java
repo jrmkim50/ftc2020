@@ -20,80 +20,122 @@ public class GetBlockGetFoundationParkFarFromWallBlue extends LinearOpMode{
     DriveTrain robot = new DriveTrain();
     Intake intake = new Intake();
     FoundationMechanism foundation = new FoundationMechanism();
+    BlockArm blockArm = new BlockArm();
     ElapsedTime time = new ElapsedTime();
-    String color;
+    boolean found = false;
+    private String color = "";
+
+    private final double CLEAR_WALL_DISTANCE = 10; //was 15. still need to tune
+    private final double INITIAL_STRAFE_DISTANCE = 28.5; //TODO Tune
+    private final double STRAFE_TO_BLOCK = 3.5; //TODO Tune
+    private final double DIST_TO_MOVE_UP = 60; //TODO Tune
+
+    private final double DRIVE_SPEED = 0.8;
+    private final double TURN_SPEED = 0.5;
+    private final double STRAFE_SPEED = 0.5;
 
     @Override
     public void runOpMode() {
-        robot.init(hardwareMap); //x: -18 -36 y: -54 -54. start with front of robot facing bridge
+        robot.init(hardwareMap); //x: 48 30 y: 54 54. start facing backwards
         intake.init(hardwareMap);
         foundation.init(hardwareMap);
+        blockArm.init(hardwareMap);
+        blockArm.deactivateClamp();
 
         waitForStart();
 
-        robot.mecanumStrafe(0.5, 20,MovementDirection.RIGHT, 0); //x: -18 -36 y: -34 -34
-        //colorSensor.getColor()
-        if (color.equals("black")) {
-            //robotArm.bringUp()
-            //robotArm.bringDown()
-            //robotArm.bringUp()
-            robot.mecanumDriveStraightAlongZero(0.5, 66, 0); //x: 48 30 y: -34 -34
-            //robotArm.bringDown()
-            //robotArm.place()
-            //robotArm.bringUp()
-            robot.mecanumDriveStraightAlongZero(-0.5, -66, 0); //x: 48 30 y: -34 -34
-            robot.mecanumDriveStraightAlongZero(-0.5, -24, 0); //x: 48 30 y: -34 -34
-            //robot.pickupBlock()
-            robot.mecanumDriveStraightAlongZero(0.5, 24, 0); //x: 48 30 y: -34 -34
-            robot.mecanumDriveStraightAlongZero(0.5, 66, 0); //x: 48 30 y: -34 -34
-            //robot.placeBlock()
-        }
-        else {
-            robot.mecanumDriveStraightAlongZero(-0.5, -8, 0); //x: -26 -44 y: -34 -34
-            //colorSensor.getColor()
-            if (color.equals("black")) {
-                //robotArm.bringUp()
-                //robotArm.bringDown()
-                //robotArm.bringUp()
-                robot.mecanumDriveStraightAlongZero(0.5, 74, 0); //x: 48 30 y: -34 -34
-                //robotArm.bringDown()
-                //robotArm.place()
-                //robotArm.bringUp()
-                robot.mecanumDriveStraightAlongZero(-0.5, -74, 0); //x: -26 -44 y: -34 -34
-                robot.mecanumDriveStraightAlongZero(-0.5, -24, 0); //x: -50 -68 y: -34 -34
-                //robot.pickupBlock()
-                robot.mecanumDriveStraightAlongZero(0.5, 24, 0); //x: -26 -44 y: -34 -34
-                robot.mecanumDriveStraightAlongZero(0.5, 74, 0); //x: 48 30 y: -34 -34
-                //robot.placeBlock()
-            }
-            else {
-                robot.mecanumDriveStraightAlongZero(-0.5, -8, 0); //x: -34 -52 y: -34 -34
-                //robotArm.bringUp()
-                //robotArm.bringDown()
-                //robotArm.bringUp()
-                robot.mecanumDriveStraightAlongZero(0.5, 82, 0); //x: 48 30 y: -34 -34
-                //robotArm.bringUp()
-                //robotArm.bringDown()
-                //robotArm.bringUp()
-                robot.mecanumDriveStraightAlongZero(-0.5, -82, 0); //x: -34 -52 y: -34 -34
-                robot.mecanumDriveStraightAlongZero(-0.5, -24, 0); //x: -58 -76 y: -34 -34
-                //robot.pickupBlock()
-                robot.mecanumDriveStraightAlongZero(0.5, 24, 0); //x: -34 -52 y: -34 -34
-                robot.mecanumDriveStraightAlongZero(0.5, 82, 0); //x: 48 30 y: -34 -34
-                //robot.placeBlock()
-            }
-        }
-        robot.turnRobot(0.4,90); //x: 48 30 y: -34 -34
-        robot.mecanumDriveStraightAlongZero(-0.5,-10,90); //x: 48 30 y: -24 -24
+        robot.mecanumStrafe(STRAFE_SPEED, INITIAL_STRAFE_DISTANCE, MovementDirection.RIGHT, 0);
+        stateZero();
 
-        robot.mecanumStrafe(0.5, 10,MovementDirection.RIGHT, 90); //58 40 y: -24 -24
+        activeScanning();
+        color = blockArm.getColor();
+        telemetry.addData("color", color);
+        telemetry.update();
+        // sleep(100);
+        if (color.equals("black")) {
+            stateA();
+        }
+
+        stateZero();
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,8,0); //0.6
+        if (!found) {
+            activeScanning();
+            color = blockArm.getColor();
+            telemetry.addData("color", color);
+            telemetry.update();
+            // sleep(100);
+            if (color.equals("black")) {
+                stateA();
+            }
+        }
+
+        stateZero();
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,8,0); //0.6
+        if (!found) {
+            activeScanning();
+            color = blockArm.getColor();
+            telemetry.addData("color", color);
+            // sleep(100);
+            if (color.equals("black")) {
+                stateA();
+            }
+        }
+
+        stateB();
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,DIST_TO_MOVE_UP,0); //0.8
+        stateC();
+
+        telemetry.update();
+        robot.turnRobot(TURN_SPEED, 90); //turn 90 counter-clockwise
+        robot.mecanumDriveStraightAlongZero(-DRIVE_SPEED,-10,90); //-0.5
         foundation.clampFoundation();
-        robot.mecanumStrafe(0.5, 10,MovementDirection.LEFT, 90); //48 30 y: -24 -24
-        robot.mecanumDriveStraightAlongZero(0.5,25,90); //x: 48 30 y: -49 -49
-        robot.turnRobot(0.4, 180); //turn 90 counter-clockwise
-        robot.mecanumDriveStraightAlongZero(-0.8,-25,180);
+        sleep(300);
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,33,90); //0.8
+        robot.turnRobot(TURN_SPEED, 180); //turn 90 counter-clockwise
+        robot.mecanumDriveStraightAlongZero(-DRIVE_SPEED,-10,180); //-0.8
         foundation.releaseFoundation();
-        robot.mecanumDriveStraightAlongZero(0.5,40,180);
-        robot.mecanumStrafe(0.5, 10,MovementDirection.LEFT, 180); //48 30 y: -24 -24
+        robot.mecanumStrafe(STRAFE_SPEED, 10, MovementDirection.LEFT, 0);
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,40,180); //0.5
+
+    }
+
+    public void stateZero() {
+        if (!found) {
+            blockArm.scanPosition();
+            sleep(700);
+        }
+    }
+
+    public void activeScanning() {
+        blockArm.activateArm();
+        blockArm.deactivateClamp();
+        sleep(700);
+    }
+
+    public void stateA() {
+        blockArm.scanPosition();
+        sleep(700);
+        robot.mecanumStrafe(STRAFE_SPEED, STRAFE_TO_BLOCK, MovementDirection.RIGHT, 0);
+        blockArm.activateArm();
+        sleep(1000);
+        blockArm.activateClamp();
+        sleep(1000);
+        found = true;
+        blockArm.armUp();
+        robot.mecanumStrafe(STRAFE_SPEED, CLEAR_WALL_DISTANCE, MovementDirection.LEFT, 0);
+    }
+
+    public void stateB() {
+
+    }
+
+    public void stateC() {
+        robot.mecanumStrafe(STRAFE_SPEED, CLEAR_WALL_DISTANCE, MovementDirection.RIGHT, 0);
+        blockArm.activateArm();
+        sleep(700);
+        blockArm.deactivateClamp();
+        sleep(700);
+        blockArm.armUp();
+        sleep(700);
     }
 }

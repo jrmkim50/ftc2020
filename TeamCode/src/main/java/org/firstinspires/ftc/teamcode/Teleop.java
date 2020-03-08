@@ -24,6 +24,8 @@ public class Teleop extends OpMode {
     GrabberClass grabber;
     Intake intakeMechanism;
     FoundationMechanism foundation;
+    BlockArm blockArm;
+    Capstone capstone;
 
     double rightFrontPower;
     double leftFrontPower;
@@ -51,6 +53,12 @@ public class Teleop extends OpMode {
         foundation = new FoundationMechanism();
         foundation.init(hardwareMap);
 
+        blockArm = new BlockArm();
+        blockArm.init(hardwareMap);
+        blockArm.armUp();
+
+        capstone = new Capstone();
+        capstone.init(hardwareMap);
     }
 
     @Override
@@ -70,25 +78,26 @@ public class Teleop extends OpMode {
         if (gamepad2.right_bumper) {
             grabber.clampBlock();
         }
-
         else if (gamepad2.left_bumper) {
             grabber.releaseBlock();
         }
-
         if (gamepad2.x) {
             grabber.activePosition();
         }
-
         else if (gamepad2.y) {
             grabber.neutralPosition();
         }
-
         if (gamepad2.b) {
             foundation.releaseFoundation();
         }
-
         else if (gamepad2.a) {
             foundation.clampFoundation();
+        }
+        if (gamepad2.dpad_down) {
+            capstone.dropCapstone();
+        }
+        else if (gamepad2.dpad_up) {
+            capstone.storeCapstone();
         }
     }
 

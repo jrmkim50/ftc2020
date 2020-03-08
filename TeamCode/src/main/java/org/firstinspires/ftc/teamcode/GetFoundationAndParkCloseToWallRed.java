@@ -30,15 +30,15 @@ public class GetFoundationAndParkCloseToWallRed extends LinearOpMode{
 
         waitForStart();
 
-        robot.mecanumDriveStraightAlongZero(-0.5,-30,0); //x: 48 30 y: -24 -24
+        robot.mecanumDriveStraightAlongZero(-0.5,-30,3); //x: 48 30 y: -24 -24
         robot.mecanumStrafe(0.5, 10,MovementDirection.LEFT, 0); //58 40 y: -24 -24
         foundation.clampFoundation();
-        robot.mecanumStrafe(0.5, 10,MovementDirection.RIGHT, 0); //48 30 y: -24 -24
+        sleep(300);
         robot.mecanumDriveStraightAlongZero(0.5,25,0); //x: 48 30 y: -49 -49
         robot.turnRobot(0.4, -90); //turn 90 clockwise
         robot.mecanumDriveStraightAlongZero(-0.8,-25,-90); //x: 48 30 y: -49 -49
         foundation.releaseFoundation();
-        robot.mecanumStrafe(0.5, 20,MovementDirection.LEFT, -90); //48 30 y: -24 -24
+        robot.mecanumStrafe(0.5, 10,MovementDirection.LEFT, -90); //48 30 y: -24 -24
         robot.mecanumDriveStraightAlongZero(0.5,40,-90); //x: 48 30 y: -49 -49
 
     }

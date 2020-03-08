@@ -9,8 +9,8 @@ public class GrabberClass {
     public Servo turnServo;
     public Servo clampServo;
     public Servo linearServo;
-    private double turnServoForwardPosition = 0.85;
-    private double turnServoBackwardPosition = 0.15;
+    private double turnServoForwardPosition = 0.65;
+    private double turnServoBackwardPosition = 0.;
 
     private double clampServoClosePosition = 0.4;
     private double clampServoOpenPosition = 0.9;

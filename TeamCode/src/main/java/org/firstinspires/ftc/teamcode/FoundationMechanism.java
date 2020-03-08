@@ -9,11 +9,11 @@ public class FoundationMechanism {
     public Servo clampServoLeft;
     HardwareMap hwMap = null;
 
-    private double clampServoRightNeutralPosition = 0.1;
-    private double clampServoRightActivePosition = 0.9;
+    private double clampServoRightNeutralPosition = 0.0;
+    private double clampServoRightActivePosition = 0.5;
 
-    private double clampServoLeftNeutralPosition = 0.0;
-    private double clampServoLeftActivePosition = 0.9;
+    private double clampServoLeftNeutralPosition = 0.;
+    private double clampServoLeftActivePosition = 0.5/2;
 
     public void init(HardwareMap ahwMap) {
         hwMap = ahwMap;

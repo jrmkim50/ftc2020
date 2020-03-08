@@ -20,6 +20,7 @@ public class TestRoutine extends LinearOpMode{
     DriveTrain robot = new DriveTrain();
     Intake intake = new Intake();
     FoundationMechanism foundation = new FoundationMechanism();
+    BlockArm blockArm = new BlockArm();
     ElapsedTime time = new ElapsedTime();
 
     @Override
@@ -27,11 +28,12 @@ public class TestRoutine extends LinearOpMode{
         robot.init(hardwareMap); //x: 48 30 y: -54 -54. start facing backwards
         intake.init(hardwareMap);
         foundation.init(hardwareMap);
+        blockArm.init(hardwareMap);
 
         waitForStart();
 
-        robot.turnRobot(0.4, -90); //turn 90 clockwise
-        robot.mecanumStrafe(0.5, 5,MovementDirection.RIGHT, -90); //48 30 y: -24 -24
+        blockArm.activateClamp();
+        sleep(100);
 
     }
 }

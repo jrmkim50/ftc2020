@@ -51,6 +51,7 @@ public class DriveTrain {
         leftBackMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
 
         imu = hwMap.get(BNO055IMU.class, "imu");
@@ -100,13 +101,13 @@ public class DriveTrain {
     }
 
     private double calculateSpeedFactor(DcMotor motor) {
-        if ((motor.getTargetPosition() - motor.getCurrentPosition()) > 300) {return 1;}
-        return 0.1 + ((motor.getTargetPosition() - motor.getCurrentPosition()) * 1.0 )/ motor.getTargetPosition();
+        if (Math.abs(motor.getTargetPosition() - motor.getCurrentPosition()) > 300) {return 1;}
+        return 0.1 + (Math.abs(motor.getTargetPosition() - motor.getCurrentPosition()) * 1.0 )/ motor.getTargetPosition();
     }
 
-    private double calculateSpeedFactor(double target, double current, double threshold) {
-        if (Math.abs(target - current) > threshold) {return 1;}
-        return 0.1 + ((Math.abs(target - current) * 1.0 )/Math.abs(target));
+    private double calculateSpeedFactor(double target, double current) {
+        if ((target - current) > 15) {return 1;}
+        return 0.1 + ((Math.abs(target - current) * 1.0 )/ target);
     }
 
     public void shutDown() {
@@ -120,11 +121,11 @@ public class DriveTrain {
         double leftSpeed = speed; double rightSpeed = speed;
         setPower(speed, speed, speed, speed);
 
-        while ((rightFrontMotor.isBusy() && leftFrontMotor.isBusy())) {
+        while ((rightFrontMotor.isBusy() && leftFrontMotor.isBusy() && rightBackMotor.isBusy() && leftBackMotor.isBusy())) {
 
             double error = getError(relativeAngle);
 //            error = 0;
-            double steeringError = getSteeringError(error, 0.05);
+            double steeringError = getSteeringError(error, 0.007);
 
             leftSpeed = speed-steeringError;
             rightSpeed = speed+steeringError;
@@ -182,15 +183,15 @@ public class DriveTrain {
         activateRunToPositionMode();
         setPower(topLeftSpeed, topRightSpeed, bottomLeftSpeed, bottomRightSpeed);
 
-        while ((rightFrontMotor.isBusy() && leftFrontMotor.isBusy())) {
+        while ((rightFrontMotor.isBusy() && leftFrontMotor.isBusy() && rightBackMotor.isBusy() && leftBackMotor.isBusy())) {
             double error = getError(relativeAngle);
-//            error = 0;
-            double steeringError = getSteeringError(error, 0.05);
+            error = 0;
+            double steeringError = getSteeringError(error, 0.01);
 
-            topLeftSpeed = (topLeftSpeed-steeringError) * calculateSpeedFactor(leftFrontMotor);
-            topRightSpeed = (topRightSpeed+steeringError) * calculateSpeedFactor(rightFrontMotor);
-            bottomLeftSpeed = (bottomLeftSpeed-steeringError) * calculateSpeedFactor(leftBackMotor);
-            bottomRightSpeed = (bottomRightSpeed+steeringError) * calculateSpeedFactor(rightBackMotor);
+            topLeftSpeed = (topLeftSpeed-steeringError) * 1;
+            topRightSpeed = (topRightSpeed+steeringError) * 1;
+            bottomLeftSpeed = (bottomLeftSpeed-steeringError) * 1;
+            bottomRightSpeed = (bottomRightSpeed+steeringError) * 1;
 
             double max = Math.max(Math.abs(topLeftSpeed), Math.abs(topRightSpeed));
 
@@ -203,9 +204,9 @@ public class DriveTrain {
 
             setPower(topLeftSpeed, topRightSpeed, bottomRightSpeed, bottomLeftSpeed);
 
-            if (rightFrontMotor.getTargetPosition() - rightFrontMotor.getCurrentPosition() < 10) {
-                break;
-            }
+            // if (Math.abs(rightFrontMotor.getTargetPosition() - rightFrontMotor.getCurrentPosition()) < 10) {
+            //     break;
+            // }
         }
 
         activateStopAndResetEncoder();
@@ -247,8 +248,8 @@ public class DriveTrain {
 
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
-        rightSpeed *= calculateSpeedFactor(angle, angles.firstAngle, 15);
-        leftSpeed *= calculateSpeedFactor(angle, angles.firstAngle, 15);
+        rightSpeed *= 1;
+        leftSpeed *= 1;
         // Send desired speeds to motors.
         setPower(rightSpeed, leftSpeed, rightSpeed, leftSpeed);
 
@@ -269,6 +270,11 @@ public class DriveTrain {
 
     public double getSteeringError(double error, double P_COEFF) {
         return Range.clip(error * P_COEFF, -1, 1);
+    }
+
+    public double getAngle() {
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        return angles.firstAngle;
     }
 
 }

@@ -16,4 +16,11 @@ public class ColorSensorClass {
         colorSensor = hwMap.get(ColorSensor.class, "colorSensor");
     }
 
+    public String getColor() {
+        if (((colorSensor.red() * colorSensor.green() * 1.0) / (colorSensor.blue() * colorSensor.blue())) <= 2) {
+            return "black";
+        } else {
+            return "yellow";
+        }
+    }
 }

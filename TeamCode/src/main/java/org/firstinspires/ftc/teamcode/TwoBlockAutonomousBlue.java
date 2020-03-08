@@ -14,9 +14,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
-@Autonomous(name="GetBlockGetFoundationParkFarFromWallRed", group="Autonomous")
+@Autonomous(name="TwoBlockAutonomousBlue", group="Autonomous")
 
-public class GetBlockGetFoundationParkFarFromWallRed extends LinearOpMode{
+public class TwoBlockAutonomousBlue extends LinearOpMode{
     DriveTrain robot = new DriveTrain();
     Intake intake = new Intake();
     FoundationMechanism foundation = new FoundationMechanism();
@@ -24,11 +24,12 @@ public class GetBlockGetFoundationParkFarFromWallRed extends LinearOpMode{
     ElapsedTime time = new ElapsedTime();
     boolean found = false;
     private String color = "";
+    private String position = "zero";
 
-    private final double CLEAR_WALL_DISTANCE = 5; //Was 15. still tuning
+    private final double CLEAR_WALL_DISTANCE = 10; //was 15. still need to tune
     private final double INITIAL_STRAFE_DISTANCE = 28.5; //TODO Tune
     private final double STRAFE_TO_BLOCK = 3.5; //TODO Tune
-    private final double DIST_TO_MOVE_UP = 80; //TODO Tune
+    private final double DIST_TO_MOVE_UP = 68; //TODO Tune
 
     private final double DRIVE_SPEED = 0.8;
     private final double TURN_SPEED = 0.5;
@@ -44,58 +45,91 @@ public class GetBlockGetFoundationParkFarFromWallRed extends LinearOpMode{
 
         waitForStart();
 
-        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,11,0); //0.6
-
         robot.mecanumStrafe(STRAFE_SPEED, INITIAL_STRAFE_DISTANCE, MovementDirection.RIGHT, 0);
         stateZero();
 
         activeScanning();
         color = blockArm.getColor();
-        telemetry.addData("color", color);
-        telemetry.update();
         if (color.equals("black")) {
             stateA();
+            position = "two";
         }
 
         stateZero();
-        robot.mecanumDriveStraightAlongZero(-DRIVE_SPEED,-9,0); //-0.6
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,8,0); //0.6
         if (!found) {
             activeScanning();
             color = blockArm.getColor();
-            telemetry.addData("color", color);
-            telemetry.update();
             if (color.equals("black")) {
                 stateA();
+                position = "one";
             }
         }
 
         stateZero();
-        robot.mecanumDriveStraightAlongZero(-DRIVE_SPEED,-8,0); //-0.6
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,8,0); //0.6
         if (!found) {
             activeScanning();
             color = blockArm.getColor();
-            telemetry.addData("color", color);
             if (color.equals("black")) {
                 stateA();
+                position = "zero";
             }
         }
 
         stateB();
-        robot.mecanumDriveStraightAlongZero(-DRIVE_SPEED,-1*DIST_TO_MOVE_UP,3); //-0.8
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,DIST_TO_MOVE_UP,0); //0.8
         stateC();
 
-        telemetry.update();
+        stateD();
+        stateZero();
+        if (position.equals("zero")) {
+            activeScanning();
+            color = blockArm.getColor();
+            if (color.equals("black")) {
+                stateA();
+            }
+        }
+
+        stateZero();
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,8,0); //0.6
+        if (position.equals("one")) {
+            activeScanning();
+            color = blockArm.getColor();
+            if (color.equals("black")) {
+                stateA();
+            }
+        }
+
+        stateZero();
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,8,0); //0.6
+        if (position.equals("two")) {
+            activeScanning();
+            color = blockArm.getColor();
+            if (color.equals("black")) {
+                stateA();
+            }
+        }
+
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,24,0); //0.6
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,16,0); //0.6
+        stateB();
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,DIST_TO_MOVE_UP,0); //0.8
+        stateC();
+
+        retrieveFoundation();
+    }
+
+    public void retrieveFoundation() {
         robot.turnRobot(TURN_SPEED, 90); //turn 90 counter-clockwise
         robot.mecanumDriveStraightAlongZero(-DRIVE_SPEED,-10,90); //-0.5
         foundation.clampFoundation();
-        sleep(300);
-        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,28,90); //0.8
-        robot.turnRobot(TURN_SPEED, 0); //turn 90 counter-clockwise
-        robot.mecanumDriveStraightAlongZero(-DRIVE_SPEED,-20,0); //-0.8
+        sleep(100);
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,33,90); //0.8
+        robot.turnRobot(TURN_SPEED, 180); //turn 90 counter-clockwise
+        robot.mecanumDriveStraightAlongZero(-DRIVE_SPEED,-10,180); //-0.8
         foundation.releaseFoundation();
-        robot.mecanumStrafe(STRAFE_SPEED, 10, MovementDirection.RIGHT, 0);
-        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,40,0); //0.5
-
+        robot.mecanumDriveStraightAlongZero(DRIVE_SPEED,40,180); //0.5
     }
 
     public void stateZero() {
@@ -136,5 +170,11 @@ public class GetBlockGetFoundationParkFarFromWallRed extends LinearOpMode{
         sleep(700);
         blockArm.armUp();
         sleep(700);
+    }
+
+    public void stateD() {
+        robot.mecanumStrafe(STRAFE_SPEED, CLEAR_WALL_DISTANCE, MovementDirection.LEFT, 0);
+        robot.mecanumDriveStraightAlongZero(-DRIVE_SPEED,-DIST_TO_MOVE_UP,0); //0.8
+        robot.mecanumDriveStraightAlongZero(-DRIVE_SPEED,-24,0); //0.6
     }
 }

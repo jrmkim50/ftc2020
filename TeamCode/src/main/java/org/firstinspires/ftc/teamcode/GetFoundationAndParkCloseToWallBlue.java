@@ -31,9 +31,9 @@ public class GetFoundationAndParkCloseToWallBlue extends LinearOpMode{
         waitForStart();
 
         robot.mecanumDriveStraightAlongZero(-0.5,-30,0); //x: 48 30 y: -24 -24
-        robot.mecanumStrafe(0.5, 10,MovementDirection.RIGHT, 0); //58 40 y: -24 -24
+        robot.mecanumStrafe(0.5, 10,MovementDirection.RIGHT, 0); //48 30 y: -24 -24
         foundation.clampFoundation();
-        robot.mecanumStrafe(0.5, 10,MovementDirection.LEFT, 0); //48 30 y: -24 -24
+        sleep(300);
         robot.mecanumDriveStraightAlongZero(0.5,25,0); //x: 48 30 y: -49 -49
         robot.turnRobot(0.4, 90); //turn 90 counter-clockwise
         robot.mecanumDriveStraightAlongZero(-0.8,-25,90);
