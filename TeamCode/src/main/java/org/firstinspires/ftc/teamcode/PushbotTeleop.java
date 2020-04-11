@@ -11,6 +11,7 @@ public class PushbotTeleop extends OpMode {
 
     private Pushbot pushbot;
     private double rightFrontPower, leftFrontPower, rightBackPower, leftBackPower;
+    private Controller gamepad1Controller = new Controller(gamepad1);
 
 
     @Override
@@ -21,15 +22,13 @@ public class PushbotTeleop extends OpMode {
 
     @Override
     public void loop() {
-        rightFrontPower = gamepad1.right_stick_y;
-        leftFrontPower = gamepad1.left_stick_y;
-        rightBackPower = gamepad1.right_stick_y;
-        leftBackPower = gamepad1.left_stick_y;
+        rightFrontPower = gamepad1Controller.getRightFrontPower();
+        leftFrontPower = gamepad1Controller.getLeftFrontPower();
+        rightBackPower = gamepad1Controller.getRightBackPower();
+        leftBackPower = gamepad1Controller.getLeftBackPower();
         pushbot.rightFront.setPower(rightFrontPower);
         pushbot.leftFront.setPower(leftFrontPower);
         pushbot.rightBack.setPower(rightBackPower);
         pushbot.leftBack.setPower(leftBackPower);
-
-
     }
 }
