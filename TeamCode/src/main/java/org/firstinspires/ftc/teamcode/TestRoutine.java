@@ -33,6 +33,7 @@ public class TestRoutine extends LinearOpMode{
         waitForStart();
 
         blockArm.activateClamp();
+        robot.mecanumDriveStraightAlongZero(0.5,20,0);
         sleep(100);
 
     }

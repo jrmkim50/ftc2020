@@ -36,7 +36,7 @@ public class Teleop extends OpMode {
 
     @Override
     public void init() {
-        telemetry.addLine("Pushbot on");
+        telemetry.addLine("PushbotTeleop on");
         robot = new DriveTrain();
         robot.init(hardwareMap);
         controller1 = new Controller(gamepad1);
